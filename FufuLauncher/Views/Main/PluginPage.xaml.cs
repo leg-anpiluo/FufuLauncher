@@ -46,6 +46,39 @@ public sealed partial class PluginPage : Page
         });
     }
     
+    private async void OnFreeCamHelpClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // 构建 Assets 文件夹下图片的路径
+            string imagePath = Path.Combine(AppContext.BaseDirectory, "Assets", "freecam.png");
+
+            if (File.Exists(imagePath))
+            {
+                // 使用 Windows.System.Launcher 打开本地文件
+                var file = await Windows.Storage.StorageFile.GetFileFromPathAsync(imagePath);
+                await Launcher.LaunchFileAsync(file);
+            }
+            else
+            {
+                // 如果文件不存在，给用户一个提示
+                var dialog = new ContentDialog
+                {
+                    Title = "文件未找到",
+                    Content = "未能在 Assets 文件夹中找到 freecam.png",
+                    CloseButtonText = "确定",
+                    XamlRoot = XamlRoot
+                };
+                await dialog.ShowAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // 捕获可能的文件访问异常
+            ViewModel.StatusMessage = $"无法打开说明图: {ex.Message}";
+        }
+    }
+    
     private async Task ShowDuplicateDialog(string message)
     {
         if (XamlRoot == null) return;
@@ -145,8 +178,6 @@ public sealed partial class PluginPage : Page
         var stackPanel = new StackPanel { Spacing = 10 };
         
         var rbLatest = new RadioButton { Content = "下载最新体验版插件(功能最多，但是不稳)", IsChecked = true, GroupName = "PluginSelect", Tag = urlLatest };
-        var rbOld = new RadioButton { Content = "下载过往长期支持插件(非常建议，稳定！)", GroupName = "PluginSelect", Tag = urlOld };
-        var rbHotSwitch = new RadioButton { Content = "下载手柄热切换插件", GroupName = "PluginSelect", Tag = urlHotSwitch };
         
         var rbCustom = new RadioButton { Content = "自定义插件链接", GroupName = "PluginSelect", Tag = "Custom" };
         var txtCustomUrl = new TextBox 
@@ -161,7 +192,7 @@ public sealed partial class PluginPage : Page
 
         var warningText = new TextBlock 
         { 
-            Text = "注意：最新体验版插件已内置手柄热切换，请勿与下方独立的手柄热切换插件同时启用，否则会导致游戏崩溃！稳定版则无此冲突", 
+            Text = "注意：最新体验版插件已内置手柄热切换和已适配国际服，且功能全面和性能可观", 
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Red),
             TextWrapping = TextWrapping.Wrap,
             FontSize = 13,
@@ -171,8 +202,6 @@ public sealed partial class PluginPage : Page
         stackPanel.Children.Add(new TextBlock { Text = "请选择要下载并安装的插件包：", Margin = new Thickness(0, 0, 0, 5) });
         stackPanel.Children.Add(rbLatest);
         stackPanel.Children.Add(warningText);
-        stackPanel.Children.Add(rbOld);
-        stackPanel.Children.Add(rbHotSwitch);
         stackPanel.Children.Add(rbCustom);
         stackPanel.Children.Add(txtCustomUrl);
         
@@ -199,9 +228,7 @@ public sealed partial class PluginPage : Page
         {
             var selectedUrl = urlLatest;
 
-            if (rbOld.IsChecked == true) selectedUrl = urlOld;
-            else if (rbHotSwitch.IsChecked == true) selectedUrl = urlHotSwitch;
-            else if (rbCustom.IsChecked == true)
+            if (rbCustom.IsChecked == true)
             {
                 selectedUrl = txtCustomUrl.Text.Trim();
                 

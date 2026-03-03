@@ -111,6 +111,13 @@
                     <ScaleTransform x:Name="GetPluginsBtnScale" CenterX="24" CenterY="24"/>
                 </AppBarButton.RenderTransform>
             </AppBarButton>
+            
+            <AppBarButton Icon="Help" 
+                  Label="自由视角怎么用" 
+                  Click="OnFreeCamHelpClick"
+                  Foreground="White">
+        </AppBarButton>
+            
             <AppBarButton Icon="Add" Label="添加插件" Command="{x:Bind ViewModel.AddPluginCommand}"/>
             <AppBarButton Icon="Refresh" Label="刷新" Command="{x:Bind ViewModel.RefreshCommand}"/>
             <AppBarButton Icon="Folder" Label="打开文件夹" Command="{x:Bind ViewModel.OpenFolderCommand}"/>
