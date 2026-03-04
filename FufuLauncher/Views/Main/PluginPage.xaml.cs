@@ -177,7 +177,7 @@ public sealed partial class PluginPage : Page
         
         var stackPanel = new StackPanel { Spacing = 10 };
         
-        var rbLatest = new RadioButton { Content = "下载最新体验版插件(功能最多，但是不稳)", IsChecked = true, GroupName = "PluginSelect", Tag = urlLatest };
+        var rbLatest = new RadioButton { Content = "下载/更新插件(国际服通用)", IsChecked = true, GroupName = "PluginSelect", Tag = urlLatest };
         
         var rbCustom = new RadioButton { Content = "自定义插件链接", GroupName = "PluginSelect", Tag = "Custom" };
         var txtCustomUrl = new TextBox 

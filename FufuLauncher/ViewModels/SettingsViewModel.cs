@@ -711,17 +711,6 @@ namespace FufuLauncher.ViewModels
             }
         }
 
-        partial void OnIsShortTermSupportEnabledChanged(bool value)
-        {
-            Debug.WriteLine($"SettingsViewModel: 短期支持版本设置变更为 {value}");
-
-            if (!_isInitializing)
-            {
-                _ = _localSettingsService.SaveSettingAsync("IsShortTermSupportEnabled", value);
-                _ = SwitchInjectionModuleAsync(value);
-            }
-        }
-
         partial void OnIsBetterGIIntegrationEnabledChanged(bool value)
         {
             Debug.WriteLine($"SettingsViewModel: BetterGI联动设置变更为 {value}");
@@ -766,68 +755,7 @@ namespace FufuLauncher.ViewModels
             _ = _localSettingsService.SaveSettingAsync("IsSaveWindowSizeEnabled", value);
         }
         private bool _isLoadingLaunchParams = false;
-        private async Task SwitchInjectionModuleAsync(bool enableShortTerm)
-        {
-            try
-            {
 
-                var appDirectory = AppContext.BaseDirectory;
-                var dllPath = Path.Combine(appDirectory, "Genshin.UnlockerIsland.API.dll");
-                var bakPath = Path.Combine(appDirectory, "Genshin.UnlockerIsland.API.dll.bak");
-                var tempPath = Path.Combine(appDirectory, "Genshin.UnlockerIsland.API.temp");
-
-                if (!File.Exists(dllPath) || !File.Exists(bakPath))
-                {
-                    Debug.WriteLine("错误：找不到必需的模块文件");
-                    var errorDialog = new ContentDialog
-                    {
-                        Title = "切换失败",
-                        Content = "找不到注入模块文件，请确保以下文件存在：\n\n" +
-                                 "Genshin.UnlockerIsland.API.dll\n" +
-                                 "Genshin.UnlockerIsland.API.dll.bak",
-                        CloseButtonText = "确定",
-                        XamlRoot = App.MainWindow.Content.XamlRoot
-                    };
-                    await errorDialog.ShowAsync();
-                    return;
-                }
-
-
-                File.Move(dllPath, tempPath, true);
-
-                File.Move(bakPath, dllPath, true);
-
-                File.Move(tempPath, bakPath, true);
-
-                var message = enableShortTerm ? "已切换到短期支持版本" : "已切换回标准版本";
-                Debug.WriteLine(message);
-
-                var successDialog = new ContentDialog
-                {
-                    Title = "切换成功",
-                    Content = $"{message}\n\n下次启动游戏时将使用新的注入模块。",
-                    CloseButtonText = "确定",
-                    XamlRoot = App.MainWindow.Content.XamlRoot
-                };
-                await successDialog.ShowAsync();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"切换注入模块失败: {ex.Message}");
-
-                var dialog = new ContentDialog
-                {
-                    Title = "切换失败",
-                    Content = $"无法切换注入模块: {ex.Message}\n\n请确保：\n" +
-                             "1. 程序具有文件操作权限\n" +
-                             "2. 文件未被其他程序占用\n" +
-                             "3. 文件存在于程序目录中",
-                    CloseButtonText = "确定",
-                    XamlRoot = App.MainWindow.Content.XamlRoot
-                };
-                await dialog.ShowAsync();
-            }
-        }
         partial void OnMinimizeToTrayChanged(bool value)
         {
             Debug.WriteLine($"SettingsViewModel: 保存托盘设置 {value}");
