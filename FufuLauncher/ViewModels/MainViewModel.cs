@@ -46,7 +46,7 @@ namespace FufuLauncher.ViewModels
         [ObservableProperty] private ObservableCollection<PostItem> _infoPosts = new();
         [ObservableProperty] private ObservableCollection<SocialMediaItem> _socialMediaList = new();
         [ObservableProperty] private Brush _panelBackgroundBrush;
-        [ObservableProperty] private double _infoCardHeight = 275;
+        [ObservableProperty] private double _infoCardHeight = 285;
         [ObservableProperty] private string _infoExpandIcon = "\uE70E";
         private bool _isInfoCardExpanded = true;
         private double _panelOpacityValue = 0.5;

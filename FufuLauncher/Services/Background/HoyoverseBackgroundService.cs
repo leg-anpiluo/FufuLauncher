@@ -76,18 +76,24 @@ namespace FufuLauncher.Services.Background
                             b.Type == "BACKGROUND_TYPE_VIDEO" &&
                             !string.IsNullOrEmpty(b.Video?.Url));
 
-                        var staticBg = backgrounds.FirstOrDefault(b =>
-                            !string.IsNullOrEmpty(b.Background?.Url));
+                        // 核心修改点：获取所有包含有效背景图片的项，转为列表
+                        var staticBgs = backgrounds
+                            .Where(b => !string.IsNullOrEmpty(b.Background?.Url))
+                            .ToList();
 
                         if (preferVideo && videoBg != null)
                         {
                             Debug.WriteLine($"HoyoverseBackgroundService: 返回视频 URL: {videoBg.Video.Url}");
                             return new BackgroundUrlInfo { Url = videoBg.Video.Url, IsVideo = true };
                         }
-                        else if (staticBg != null)
+                        else if (staticBgs.Count > 0)
                         {
-                            Debug.WriteLine($"HoyoverseBackgroundService: 返回静态 URL: {staticBg.Background.Url}");
-                            return new BackgroundUrlInfo { Url = staticBg.Background.Url, IsVideo = false };
+                            // 核心修改点：使用 Random 随机挑选一个背景
+                            var random = new Random();
+                            var selectedBg = staticBgs[random.Next(staticBgs.Count)];
+
+                            Debug.WriteLine($"HoyoverseBackgroundService: 随机返回静态 URL: {selectedBg.Background.Url}");
+                            return new BackgroundUrlInfo { Url = selectedBg.Background.Url, IsVideo = false };
                         }
                     }
                 }

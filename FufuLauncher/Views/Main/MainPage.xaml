@@ -118,7 +118,7 @@
                     </Grid.Shadow>
                       
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="135"/>
+                        <RowDefinition Height="145"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
@@ -149,12 +149,7 @@
                                         <Image Source="{Binding Image.Url}" 
                                                Stretch="UniformToFill" 
                                                HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center"
-                                               RenderTransformOrigin="0.5,0.5">
-                                            <Image.RenderTransform>
-                                                <ScaleTransform ScaleX="1.005" ScaleY="1.005"/>
-                                            </Image.RenderTransform>
-                                        </Image>
+                                               VerticalAlignment="Center" />
                 
                                         <Button Background="Transparent"
                                                 HorizontalAlignment="Stretch"
@@ -163,7 +158,14 @@
                                                 CommandParameter="{Binding Image.Link}"
                                                 Margin="0"
                                                 Padding="0"
-                                                BorderThickness="0"/>
+                                                BorderThickness="0">
+                                            <Button.Resources>
+                                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent"/>
+                                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent"/>
+                                                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent"/>
+                                                <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent"/>
+                                            </Button.Resources>
+                                        </Button>
                                     </Grid>
                                 </DataTemplate>
                             </FlipView.ItemTemplate>
@@ -256,7 +258,10 @@
                     
                     <Grid Grid.Row="2">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>    <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>    
+                            <ColumnDefinition Width="Auto"/> 
+                            <ColumnDefinition Width="Auto"/> 
+                        </Grid.ColumnDefinitions>
 
                         <Button Grid.Column="0" 
                                 Content="{Binding CheckinButtonText}"
@@ -362,7 +367,8 @@
                     </Border>
 
                     <StackPanel Orientation="Horizontal" Spacing="8" Margin="18,12">
-                        <FontIcon Glyph="&#xE8B7;" FontSize="16" Foreground="White"/>
+                        <FontIcon Glyph="&#xE8B7;"
+                                  FontSize="16" Foreground="White"/>
                         <TextBlock Text="截图文件夹" FontSize="14" FontWeight="SemiBold" Foreground="White"/>
                     </StackPanel>
                 </Grid>
@@ -378,7 +384,7 @@
                     BorderThickness="0"
                     CornerRadius="24"
                     Translation="0,0,48">
-                 
+                  
                 <Button.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="切换到 Bilibili 服" Click="SwitchToBilibili_Click" Icon="Switch" />
@@ -406,7 +412,7 @@
                         <ProgressRing Width="20" Height="20"
                                       IsActive="{x:Bind ViewModel.IsGameLaunching, Mode=OneWay}"
                                       Visibility="{x:Bind ViewModel.IsGameLaunching, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
-        
+         
                         <FontIcon Glyph="{x:Bind ViewModel.LaunchButtonIcon, Mode=OneWay}" 
                                   FontSize="20" Foreground="White"/>
         

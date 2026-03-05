@@ -508,7 +508,6 @@ private bool IsVCRedistInstalled()
 {
     try
     {
-        // 检查 x64 运行库
         using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64"))
         {
             if (key != null && key.GetValue("Installed") is int installed && installed == 1) return true;
@@ -747,38 +746,61 @@ private bool IsVCRedistInstalled()
         }
     }
 
-    private Task ApplyGlobalBackgroundAsync(BackgroundRenderResult? result)
+private Task ApplyGlobalBackgroundAsync(BackgroundRenderResult? result)
+{
+    return RunOnUIThreadAsync(async () => 
     {
-        return RunOnUIThreadAsync(() =>
-        {
-            if (result == null) { ClearGlobalBackgroundAsync(); return; }
+        if (result == null) { ClearGlobalBackgroundAsync(); return; }
 
-            if (result.IsVideo)
+        if (result.IsVideo)
+        {
+            _isVideoBackground = true;
+            GlobalBackgroundImage.Visibility = Visibility.Collapsed;
+            _globalBackgroundPlayer?.Pause();
+            _globalBackgroundPlayer = new MediaPlayer
             {
-                _isVideoBackground = true;
-                GlobalBackgroundImage.Visibility = Visibility.Collapsed;
-                _globalBackgroundPlayer?.Pause();
-                _globalBackgroundPlayer = new MediaPlayer
-                {
-                    Source = result.VideoSource,
-                    IsMuted = true,
-                    IsLoopingEnabled = true,
-                    AutoPlay = true
-                };
-                GlobalBackgroundVideo.SetMediaPlayer(_globalBackgroundPlayer);
-                GlobalBackgroundVideo.Visibility = Visibility.Visible;
-            }
-            else
+                Source = result.VideoSource,
+                IsMuted = true,
+                IsLoopingEnabled = true,
+                AutoPlay = true
+            };
+            GlobalBackgroundVideo.SetMediaPlayer(_globalBackgroundPlayer);
+            GlobalBackgroundVideo.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            _isVideoBackground = false;
+            _globalBackgroundPlayer?.Pause();
+            GlobalBackgroundVideo.Visibility = Visibility.Collapsed;
+            
+            var targetOpacity = GlobalBackgroundImage.Opacity; 
+            var finalOpacity = targetOpacity > 0 ? targetOpacity : 1.0;
+            
+            GlobalBackgroundImage.Opacity = 0.0;
+            GlobalBackgroundImage.Source = result.ImageSource;
+            GlobalBackgroundImage.Visibility = Visibility.Visible;
+            
+            await Task.Delay(900); 
+            
+            var fadeInAnimation = new DoubleAnimation
             {
-                _isVideoBackground = false;
-                _globalBackgroundPlayer?.Pause();
-                GlobalBackgroundVideo.Visibility = Visibility.Collapsed;
-                GlobalBackgroundImage.Source = result.ImageSource;
-                GlobalBackgroundImage.Visibility = Visibility.Visible;
-            }
-            UpdateBackgroundOverlayTheme();
-        });
-    }
+                From = 0.0,
+                To = finalOpacity,
+                Duration = TimeSpan.FromMilliseconds(1000),
+                EasingFunction = new CircleEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            Storyboard.SetTarget(fadeInAnimation, GlobalBackgroundImage);
+            Storyboard.SetTargetProperty(fadeInAnimation, "Opacity");
+            
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(fadeInAnimation);
+            storyboard.Begin();
+        }
+        
+        UpdateBackgroundOverlayTheme();
+    });
+}
 
     private Task ClearGlobalBackgroundAsync()
     {

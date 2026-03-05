@@ -105,9 +105,6 @@ private async void CreateShortcut_Click(object sender, RoutedEventArgs e)
 {
     try
     {
-        // ==========================================
-        // 1. 基础检查与路径获取 (保持原逻辑)
-        // ==========================================
         var localSettings = App.GetService<ILocalSettingsService>();
         var settingObj = await localSettings.ReadSettingAsync("GameInstallationPath");
         var rawPath = settingObj as string;
@@ -120,7 +117,6 @@ private async void CreateShortcut_Click(object sender, RoutedEventArgs e)
         
         var finalExePath = rawPath;
         
-        // 检查原神主程序路径
         if (Directory.Exists(rawPath))
         {
             var cnPath = Path.Combine(rawPath, "YuanShen.exe");
@@ -139,24 +135,14 @@ private async void CreateShortcut_Click(object sender, RoutedEventArgs e)
              await ShowError($"路径无效，文件或文件夹不存在：\n{rawPath}");
              return;
         }
-
-        // ==========================================
-        // 2. 准备关键数据
-        // ==========================================
         
-        // 获取当前启动器(FufuLauncher)的完整路径
+        
         var appPath = Environment.ProcessPath; 
         
-        // 核心参数部分：--elevated-inject "游戏路径"
-        string argsOnly = $"--elevated-inject \"{finalExePath}\"";
+        var argsOnly = $"--elevated-inject \"{finalExePath}\"";
+        
+        var fullCommandLine = $"\"{appPath}\" {argsOnly}";
 
-        // 完整命令行： "启动器路径" --elevated-inject "游戏路径"
-        // 注意：给 appPath 也加上引号，防止安装路径带空格导致无法识别
-        string fullCommandLine = $"\"{appPath}\" {argsOnly}";
-
-        // ==========================================
-        // 3. 弹窗询问用户意图
-        // ==========================================
         var choiceDialog = new ContentDialog
         {
             Title = "选择操作",
@@ -165,7 +151,7 @@ private async void CreateShortcut_Click(object sender, RoutedEventArgs e)
             SecondaryButtonText = "复制启动命令",
             CloseButtonText = "取消",
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = this.XamlRoot
+            XamlRoot = XamlRoot
         };
 
         var choiceResult = await choiceDialog.ShowAsync();
@@ -992,14 +978,19 @@ private async Task ShowAutoPathDialog(string foundPath)
                     return;
                 }
 
-                List<GameAccountData>? accounts = null;
+                List<GameAccountData>? accounts;
                 try
                 {
                     accounts = JsonSerializer.Deserialize<List<GameAccountData>>(json);
                 }
                 catch
                 {
-                    try { File.Delete(_accountsFilePath); } catch { }
+                    try { File.Delete(_accountsFilePath); }
+                    catch
+                    {
+                        // ignored
+                    }
+
                     DispatcherQueue.TryEnqueue(() => AccountsListView.ItemsSource = new List<GameAccountData>());
                     return;
                 }
@@ -1047,7 +1038,7 @@ private async Task ShowAutoPathDialog(string foundPath)
                     Content = inputTextBox,
                     PrimaryButtonText = "保存",
                     CloseButtonText = "取消",
-                    XamlRoot = this.XamlRoot,
+                    XamlRoot = XamlRoot,
                     DefaultButton = ContentDialogButton.Primary
                 };
 

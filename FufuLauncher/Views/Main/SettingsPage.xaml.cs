@@ -78,6 +78,39 @@ public sealed partial class SettingsPage : Page
 
         window.Activate();
     }
+    
+    private void OnOpenDatabaseEditorClick(object sender, RoutedEventArgs e)
+    {
+        var editorWindow = new DatabaseEditorWindow();
+
+        editorWindow.ExtendsContentIntoTitleBar = true;
+    
+        IntPtr hWnd = WindowNative.GetWindowHandle(editorWindow);
+        WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+        AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+
+        if (appWindow != null)
+        {
+            string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets/WindowIcon.ico");
+            if (File.Exists(iconPath))
+            {
+                appWindow.SetIcon(iconPath);
+            }
+            
+            var size = new Windows.Graphics.SizeInt32(800, 550);
+            appWindow.Resize(size);
+            
+            var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
+            if (displayArea != null)
+            {
+                var centeredX = (displayArea.WorkArea.Width - size.Width) / 2;
+                var centeredY = (displayArea.WorkArea.Height - size.Height) / 2;
+                appWindow.Move(new Windows.Graphics.PointInt32(centeredX, centeredY));
+            }
+        }
+        
+        editorWindow.Activate();
+    }
 
     private void OnOpenAboutWindowClick(object sender, RoutedEventArgs e)
     {

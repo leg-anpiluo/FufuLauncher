@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using FufuLauncher.Activation;
 using FufuLauncher.Contracts.Services;
@@ -22,9 +23,39 @@ namespace FufuLauncher;
 
 public partial class App : Application
 {
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
+    private const uint MB_OK = 0x00000000;
+    private const uint MB_ICONERROR = 0x00000010;
     public IHost Host
     {
         get;
+    }
+    
+    private void ShowCrashDialog(string source, Exception? ex)
+    {
+        if (ex == null) return;
+
+        string message = $"程序遇到了一个错误\n\n" +
+                         $"错误来源: {source}\n" +
+                         $"错误信息: {ex.Message}\n\n" +
+                         $"堆栈信息:\n{ex.StackTrace}";
+
+        IntPtr hwnd = IntPtr.Zero;
+        try
+        {
+            if (MainWindow != null)
+            {
+                hwnd = WinRT.Interop.WindowNative.GetWindowHandle(MainWindow);
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+        
+        MessageBox(hwnd, message, "芙芙启动器发生了异常", MB_OK | MB_ICONERROR);
     }
 
     public static T GetService<T>()
@@ -49,6 +80,12 @@ public partial class App : Application
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         UnhandledException += App_UnhandledException;
+        
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        
+        UnhandledException += App_UnhandledException;
+        
+        TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
         InitializeComponent();
 
@@ -135,6 +172,28 @@ public partial class App : Application
 
         CleanupOldSettings();
     }
+    
+    private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        e.SetObserved();
+        LogException(e.Exception, "UnobservedTaskException");
+        
+        ShowCrashDialog("后台异步任务异常", e.Exception);
+    }
+    
+    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        e.Handled = true;
+        LogException(e.Exception, "App_UnhandledException");
+        ShowCrashDialog("UI 界面交互异常", e.Exception);
+    }
+
+    private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+    {
+        var ex = e.ExceptionObject as Exception;
+        LogException(ex, "CurrentDomain_UnhandledException");
+        ShowCrashDialog("应用程序域致命异常", ex);
+    }
 
     private void App_Activated(object sender, AppActivationArguments e)
     {
@@ -187,10 +246,6 @@ public partial class App : Application
         }
     }
 
-    private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
-    {
-        LogException(e.ExceptionObject as Exception, "CurrentDomain_UnhandledException");
-    }
 
     private void CleanupOldSettings()
     {
@@ -215,12 +270,6 @@ public partial class App : Application
         {
 
         }
-    }
-
-    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
-    {
-        LogException(e.Exception, "App_UnhandledException");
-        e.Handled = true;
     }
 
     private void LogException(Exception? ex, string source)
