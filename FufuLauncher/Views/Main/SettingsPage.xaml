@@ -580,7 +580,7 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="FufuLauncher" Style="{ThemeResource BodyTextBlockStyle}"/>
-                                    <TextBlock Text="版本 1.0.9.3" 
+                                    <TextBlock Text="版本 1.0.9.4" 
                                                Style="{ThemeResource CaptionTextBlockStyle}" 
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                 </StackPanel>
